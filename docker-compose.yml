@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: php:usuarios
     volumes:
       - ./src:/var/www/html
     environment:
