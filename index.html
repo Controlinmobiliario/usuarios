@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Service API - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .response.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .response.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .auth-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .auth-status.logged-in {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .auth-status.logged-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .user-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .user-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .user-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .endpoint-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .endpoint-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .method.get { background: #28a745; color: white; }
+        .method.post { background: #007bff; color: white; }
+        .method.put { background: #ffc107; color: black; }
+        .method.delete { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="auth-status" id="authStatus">No autenticado</div>
+    
+    <div class="container">
+        <h1>🚀 User Service API</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('register')">Registro</button>
+            <button class="tab" onclick="showTab('login')">Login</button>
+            <button class="tab" onclick="showTab('profile')">Mi Perfil</button>
+            <button class="tab" onclick="showTab('users')">Usuarios</button>
+            <button class="tab" onclick="showTab('docs')">Documentación</button>
+        </div>
+        
+        <!-- Register Tab -->
+        <div id="register" class="tab-content active">
+            <div class="endpoint-info">
+                <h3><span class="method post">POST</span>/register</h3>
+                <p>Crear una nueva cuenta de usuario</p>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Usuario *</label>
+                    <input type="text" id="regUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="regEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña *</label>
+                    <input type="password" id="regPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="regFirstName">
+                </div>
+                <div class="form-group">
+                    <label>Apellido</label>
+                    <input type="text" id="regLastName">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="regPhone">
+                </div>
+                <button type="submit">Registrar Usuario</button>
+            </form>
+            <div id="registerResponse" class="response" style="display: none;"></div>
+        </div>
+        
+        <!-- Login Tab -->
+        <div id="login" class="tab-content">
+            <div class="endpoint-info">
+                <h3><span class="method post">POST</span>/login</h3>
+                <p>Iniciar sesión y obtener token JWT</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="loginEmail" required value="admin@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña *</label>
+                    <input type="password" id="loginPassword" required value="password">
+                </div>
+                <button type="submit">Iniciar Sesión</button>
+                <button type="button" onclick="logout()" style="margin-left: 10px; background: #dc3545;">Cerrar Sesión</button>
+            </form>
+            <div id="loginResponse" class="response" style="display: none;"></div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="endpoint-info">
+                <h3><span class="method get">GET</span>/me</h3>
+                <p>Obtener información del usuario actual (requiere autenticación)</p>
+            </div>
+            
+            <button onclick="getMyProfile()">Obtener Mi Perfil</button>
+            <div id="profileResponse" class="response" style="display: none;"></div>
+            
+            <div style="margin-top: 30px;">
+                <div class="endpoint-info">
+                    <h3><span class="method put">PUT</span>/users/{id}</h3>
+                    <p>Actualizar información del usuario</p>
+                </div>
+                
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label>ID de Usuario *</label>
+                        <input type="number" id="updateId" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="updateUsername">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="updateEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="updateFirstName">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="updateLastName">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="updatePhone">
+                    </div>
+                    <button type="submit">Actualizar Usuario</button>
+                </form>
+                <div id="updateResponse" class="response" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="endpoint-info">
+                <h3><span class="method get">GET</span>/users</h3>
+                <p>Listar todos los usuarios (requiere autenticación)</p>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Límite</label>
+                    <input type="number" id="usersLimit" value="10" min="1" max="100">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Offset</label>
+                    <input type="number" id="usersOffset" value="0" min="0">
+                </div>
+                <div style="align-self: end;">
+                    <button onclick="getUsers()">Obtener Usuarios</button>
+                </div>
+            </div>
+            
+            <div id="usersResponse" class="response" style="display: none;"></div>
+            <div id="usersList" class="user-list"></div>
+        </div>
+        
+        <!-- Documentation Tab -->
+        <div id="docs" class="tab-content">
+            <h2>📖 Documentación de la API</h2>
+            
+            <div class="endpoint-info">
+                <h3>Endpoints Disponibles</h3>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method post">POST</span>/register</h4>
+                    <p><strong>Descripción:</strong> Registrar un nuevo usuario</p>
+                    <p><strong>Body:</strong> { username, email, password, first_name?, last_name?, phone? }</p>
+                    <p><strong>Respuesta:</strong> Usuario creado con UUID</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method post">POST</span>/login</h4>
+                    <p><strong>Descripción:</strong> Iniciar sesión</p>
+                    <p><strong>Body:</strong> { email, password }</p>
+                    <p><strong>Respuesta:</strong> Token JWT y datos del usuario</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method get">GET</span>/me</h4>
+                    <p><strong>Descripción:</strong> Obtener datos del usuario actual</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                    <p><strong>Respuesta:</strong> Datos del usuario autenticado</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method get">GET</span>/users</h4>
+                    <p><strong>Descripción:</strong> Listar usuarios (requiere autenticación)</p>
+                    <p><strong>Query Params:</strong> limit, offset</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method get">GET</span>/users/{id}</h4>
+                    <p><strong>Descripción:</strong> Obtener usuario por ID</p>
+                    <p><strong>Respuesta:</strong> Datos del usuario</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method put">PUT</span>/users/{id}</h4>
+                    <p><strong>Descripción:</strong> Actualizar usuario</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                    <p><strong>Body:</strong> Campos a actualizar</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method delete">DELETE</span>/users/{id}</h4>
+                    <p><strong>Descripción:</strong> Eliminar usuario (solo admin)</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method post">POST</span>/logout</h4>
+                    <p><strong>Descripción:</strong> Cerrar sesión</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4><span class="method post">POST</span>/refresh</h4>
+                    <p><strong>Descripción:</strong> Renovar token JWT</p>
+                    <p><strong>Headers:</strong> Authorization: Bearer {token}</p>
+                </div>
+            </div>
+            
+            <div class="endpoint-info">
+                <h3>🔧 Instrucciones de Despliegue</h3>
+                <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto;">
+# 1. Clonar el proyecto y crear la estructura de archivos
+mkdir user-service-api
+cd user-service-api
+
+# 2. Crear los archivos mostrados en los artifacts
+
+# 3. Ejecutar con Docker Compose
+docker-compose up -d
+
+# 4. Acceder a los servicios
+# - API: http://localhost:8080
+# - phpMyAdmin: http://localhost:8081
+# - Base de datos: localhost:3306
+
+# 5. Verificar que todo funciona
+curl -X POST http://localhost:8080/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@example.com","password":"123456"}'
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        
+        updateAuthStatus();
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function updateAuthStatus() {
+            const status = document.getElementById('authStatus');
+            if (authToken) {
+                status.textContent = 'Autenticado ✓';
+                status.className = 'auth-status logged-in';
+            } else {
+                status.textContent = 'No autenticado ✗';
+                status.className = 'auth-status logged-out';
+            }
+        }
+        
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `response ${isError ? 'error' : 'success'}`;
+            element.style.display = 'block';
+        }
+        
+        async function makeRequest(url, method = 'GET', body = null, useAuth = false) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (useAuth && authToken) {
+                options.headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                return { data, status: response.status, ok: response.ok };
+            } catch (error) {
+                return { data: { error: error.message }, status: 500, ok: false };
+            }
+        }
+        
+        // Register
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('regUsername').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                first_name: document.getElementById('regFirstName').value,
+                last_name: document.getElementById('regLastName').value,
+                phone: document.getElementById('regPhone').value
+            };
+            
+            const result = await makeRequest('/register', 'POST', userData);
+            showResponse('registerResponse', result.data, !result.ok);
+        });
+        
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loginData = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            };
+            
+            const result = await makeRequest('/login', 'POST', loginData);
+            
+            if (result.ok && result.data.token) {
+                authToken = result.data.token;
+                currentUser = result.data.user;
+                localStorage.setItem('authToken', authToken);
+                updateAuthStatus();
+            }
+            
+            showResponse('loginResponse', result.data, !result.ok);
+        });
+        
+        // Logout
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            updateAuthStatus();
+            showResponse('loginResponse', { message: 'Sesión cerrada localmente' });
+        }
+        
+        // Get Profile
+        async function getMyProfile() {
+            const result = await makeRequest('/me', 'GET', null, true);
+            showResponse('profileResponse', result.data, !result.ok);
+            
+            if (result.ok && result.data.user) {
+                const user = result.data.user;
+                document.getElementById('updateId').value = user.id;
+                document.getElementById('updateUsername').value = user.username;
+                document.getElementById('updateEmail').value = user.email;
+                document.getElementById('updateFirstName').value = user.first_name || '';
+                document.getElementById('updateLastName').value = user.last_name || '';
+                document.getElementById('updatePhone').value = user.phone || '';
+            }
+        }
+        
+        // Update User
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('updateId').value;
+            const updateData = {};
+            
+            const fields = ['username', 'email', 'first_name', 'last_name', 'phone'];
+            fields.forEach(field => {
+                const element = document.getElementById('update' + field.charAt(0).toUpperCase() + field.slice(1).replace('_', ''));
+                if (element && element.value.trim()) {
+                    updateData[field] = element.value.trim();
+                }
+            });
+            
+            const result = await makeRequest(`/users/${userId}`, 'PUT', updateData, true);
+            showResponse('updateResponse', result.data, !result.ok);
+        });
+        
+        // Get Users
+        async function getUsers() {
+            const limit = document.getElementById('usersLimit').value;
+            const offset = document.getElementById('usersOffset').value;
+            
+            const result = await makeRequest(`/users?limit=${limit}&offset=${offset}`, 'GET', null, true);
+            showResponse('usersResponse', result.data, !result.ok);
+            
+            if (result.ok && result.data.users) {
+                displayUsers(result.data.users);
+            }
+        }
+        
+        function displayUsers(users) {
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = '';
+            
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `
+                    <h3>${user.username} (${user.email})</h3>
+                    <div class="user-info">
+                        <div><strong>ID:</strong> ${user.id}</div>
+                        <div><strong>UUID:</strong> ${user.uuid}</div>
+                        <div><strong>Nombre:</strong> ${user.first_name || 'N/A'} ${user.last_name || ''}</div>
+                        <div><strong>Teléfono:</strong> ${user.phone || 'N/A'}</div>
+                        <div><strong>Activo:</strong> ${user.is_active ? 'Sí' : 'No'}</div>
+                        <div><strong>Verificado:</strong> ${user.is_verified ? 'Sí' : 'No'}</div>
+                        <div><strong>Creado:</strong> ${new Date(user.created_at).toLocaleString()}</div>
+                        <div><strong>Último login:</strong> ${user.last_login ? new Date(user.last_login).toLocaleString() : 'Nunca'}</div>
+                    </div>
+                `;
+                usersList.appendChild(userCard);
+            });
+        }
+    </script>
+</body>
+</html>
