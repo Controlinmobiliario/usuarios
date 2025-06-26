@@ -35,6 +35,9 @@ services:
       - php
     networks:
       - appnet
+      #para el servidor minck es necesario unir el nginx principal con el nginx del servicio
+      #docker network create --driver=overlay --attachable sharednet
+      - sharednet
     deploy:
       placement:
         constraints:
