@@ -115,3 +115,5 @@ volumes:
 networks:
   appnet:
     driver: overlay
+  sharednet:
+    external: true
