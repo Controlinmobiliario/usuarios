@@ -39,6 +39,8 @@ class UserController {
         $this->user->first_name = $data['first_name'] ?? '';
         $this->user->last_name = $data['last_name'] ?? '';
         $this->user->phone = $data['phone'] ?? '';
+        $this->user->is_verified = false;
+        $this->user->is_active = true;
 
         if ($this->user->create()) {
             http_response_code(201);
