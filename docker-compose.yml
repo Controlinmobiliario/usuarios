@@ -2,10 +2,9 @@ version: '3.8'
 
 services:
   php:
+    image: usuarios/php
     build:
       context: .
-      dockerfile: Dockerfile
-    image: php:usuarios
     volumes:
       - ./src:/var/www/html
     environment:
