@@ -2,9 +2,10 @@ version: '3.8'
 
 services:
   php:
-    image: usuarios/php
+    image: controlinmobiliario/usuarios
     build:
       context: .
+      dockerfile: Dockerfile
     volumes:
       - ./src:/var/www/html
     environment:
