@@ -285,3 +285,4 @@ class UserController {
     private function getJWTSecret() {
         return $_ENV['JWT_SECRET'] ?? 'your-super-secret-jwt-key-change-this';
     }
+}
