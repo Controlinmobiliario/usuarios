@@ -53,4 +53,12 @@ class LoginAttempt {
         $stmt->bindParam(':ip', $this->ip);
         $stmt->execute();
     }
+
+    public function cleanOldAttempts($hours = 24) {
+        $query = "DELETE FROM login_attempts WHERE attempted_at < (NOW() - INTERVAL :hours HOUR)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':hours', $hours, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
 }
