@@ -77,6 +77,17 @@ CREATE TABLE login_attempts (
     INDEX idx_ip_time (ip_address, attempted_at)
 );
 
+-- Evento automático para limpiar tokens expirados de jwt_blacklist
+DELIMITER //
+CREATE EVENT IF NOT EXISTS cleanup_login_attempts
+ON SCHEDULE EVERY 24 HOUR
+DO
+BEGIN
+    DELETE FROM login_attempts WHERE attempted_at < (NOW() - INTERVAL 24 HOUR);
+END;
+//
+DELIMITER ;
+
 -- Insertar usuario admin por defecto
 INSERT INTO users (uuid, username, email, password_hash, first_name, last_name, is_active, is_verified) 
 VALUES (
