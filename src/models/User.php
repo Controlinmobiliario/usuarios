@@ -146,21 +146,28 @@ class User {
         return password_verify($password, $this->password_hash);
     }
 
-    public function emailExists($email) {
-        $query = "SELECT id FROM " . $this->table_name . " WHERE email = :email LIMIT 1";
+    public function fieldExists($field, $value, $excludeUserId = null) {
+        $allowedFields = ['email', 'username'];
+        if (!in_array($field, $allowedFields)) {
+            throw new InvalidArgumentException("Field '$field' is not allowed for existence check.");
+        }
+    
+        $query = "SELECT id FROM " . $this->table_name . " WHERE $field = :value";
+        if ($excludeUserId !== null) {
+            $query .= " AND id != :excludeId";
+        }
+    
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(':value', $value);
+    
+        if ($excludeUserId !== null) {
+            $stmt->bindParam(':excludeId', $excludeUserId, PDO::PARAM_INT);
+        }
+    
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
 
-    public function usernameExists($username) {
-        $query = "SELECT id FROM " . $this->table_name . " WHERE username = :username LIMIT 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":username", $username);
-        $stmt->execute();
-        return $stmt->rowCount() > 0;
-    }
 
     private function mapFromArray($data) {
         $this->id = $data['id'];
