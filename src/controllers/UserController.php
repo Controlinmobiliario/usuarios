@@ -47,6 +47,15 @@ class UserController {
             return;
         }
 
+        if (!empty($data['phone'])) {
+            if (!preg_match('/^\+?[0-9]{7,15}$/', $data['phone'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid phone number format']);
+                return;
+            }
+        }
+
+
         // Set user properties
         $this->user->username = $data['username'];
         $this->user->email = $data['email'];
@@ -203,7 +212,16 @@ class UserController {
         
         if (isset($data['first_name'])) $this->user->first_name = $data['first_name'];
         if (isset($data['last_name'])) $this->user->last_name = $data['last_name'];
-        if (isset($data['phone'])) $this->user->phone = $data['phone'];
+
+        if (isset($data['phone'])) {
+            if (!empty($data['phone']) && !preg_match('/^\+?[0-9]{7,15}$/', $data['phone'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid phone number format']);
+                return;
+            }
+            $this->user->phone = $data['phone'];
+        }
+
         
         // Only admin can change these fields
         if ($currentUser['username'] === 'admin') {
