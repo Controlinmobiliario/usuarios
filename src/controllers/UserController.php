@@ -28,14 +28,14 @@ class UserController {
         }
 
         // Check if email already exists
-        if ($this->user->emailExists($data['email'])) {
+        if ($this->user->fieldExists('email', $data['email'])) {
             http_response_code(409);
             echo json_encode(['error' => 'Email already exists']);
             return;
         }
 
         // Check if username already exists
-        if ($this->user->usernameExists($data['username'])) {
+        if ($this->user->fieldExists('username', $data['username'])) {
             http_response_code(409);
             echo json_encode(['error' => 'Username already exists']);
             return;
@@ -166,11 +166,14 @@ class UserController {
         }
 
         $data = json_decode(file_get_contents("php://input"), true);
-        
+
         // Update only provided fields
         if (isset($data['username'])) {
             // Check if new username already exists (and it's not the current user's username)
-            if ($data['username'] !== $this->user->username && $this->user->usernameExists($data['username'])) {
+            if (
+                $data['username'] !== $this->user->username &&
+                $this->user->fieldExists('username', $data['username'], $this->user->id)
+            ) {
                 http_response_code(409);
                 echo json_encode(['error' => 'Username already exists']);
                 return;
@@ -187,7 +190,10 @@ class UserController {
                 return;
             }
             
-            if ($data['email'] !== $this->user->email && $this->user->emailExists($data['email'])) {
+            if (
+                $data['email'] !== $this->user->email &&
+                $this->user->fieldExists('email', $data['email'], $this->user->id)
+            ) {
                 http_response_code(409);
                 echo json_encode(['error' => 'Email already exists']);
                 return;
