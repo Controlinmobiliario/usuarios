@@ -124,6 +124,7 @@ class UserController {
                     return;
                 }
 
+                $loginAttempt->clearAttempts();
                 $this->user->updateLastLogin();
                 $token = $this->generateJWT($this->user->id);
                 
