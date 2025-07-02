@@ -15,9 +15,9 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL,
-    INDEX idx_username (username),
-    INDEX idx_email (email),
-    INDEX idx_uuid (uuid)
+    UNIQUE INDEX idx_username (username),
+    UNIQUE INDEX idx_email (email),
+    UNIQUE INDEX idx_uuid (uuid)
 );
 
 CREATE TABLE user_sessions (
@@ -29,7 +29,7 @@ CREATE TABLE user_sessions (
     ip_address VARCHAR(45),
     user_agent TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_token (session_token),
+    UNIQUE INDEX idx_token (session_token),
     INDEX idx_user_id (user_id)
 );
 
@@ -41,7 +41,7 @@ CREATE TABLE password_resets (
     used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_token (token)
+    UNIQUE INDEX idx_token (token)
 );
 
 CREATE TABLE jwt_blacklist (
@@ -49,7 +49,7 @@ CREATE TABLE jwt_blacklist (
     token VARCHAR(512) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_token (token),
+    UNIQUE INDEX idx_token (token),
     INDEX idx_expires_at (expires_at)
 );
 
