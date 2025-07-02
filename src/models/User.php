@@ -217,4 +217,13 @@ class User {
 
         return $data;
     }
+
+    public function phoneExists($phone) {
+        $query = "SELECT id FROM " . $this->table_name . " WHERE phone = :phone LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
 }
