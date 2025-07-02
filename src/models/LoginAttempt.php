@@ -10,6 +10,10 @@ class LoginAttempt {
         $this->db = $db;
         $this->ip = $ip;
         $this->lockoutMinutes = $lockoutMinutes;
+
+        if (rand(1, 100) === 1) {
+            $this->cleanOldAttempts();
+        }
     }
 
     public function isBlocked($maxAttempts = 5) {
