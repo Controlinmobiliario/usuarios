@@ -18,7 +18,8 @@ CREATE TABLE users (
     last_login TIMESTAMP NULL,
     UNIQUE INDEX idx_username (username),
     UNIQUE INDEX idx_email (email),
-    UNIQUE INDEX idx_uuid (uuid)
+    UNIQUE INDEX idx_uuid (uuid),
+    UNIQUE INDEX idx_phone (phone)
 );
 
 -- Tabla de sesiones de usuario
