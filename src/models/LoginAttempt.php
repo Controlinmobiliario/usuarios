@@ -61,4 +61,10 @@ class LoginAttempt {
         return $stmt->execute();
     }
 
+    public function clearAttempts() {
+        $query = "DELETE FROM {$this->table} WHERE ip_address = :ip";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':ip', $this->ip);
+        return $stmt->execute();
+    }
 }
