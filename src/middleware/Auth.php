@@ -4,13 +4,13 @@ class Auth {
     public static function authenticate($db) {
         $headers = getallheaders();
         $token = null;
-        
+
         if (isset($headers['Authorization'])) {
             $token = str_replace('Bearer ', '', $headers['Authorization']);
         } elseif (isset($headers['authorization'])) {
             $token = str_replace('Bearer ', '', $headers['authorization']);
         }
-        
+
         if (!$token) {
             http_response_code(401);
             echo json_encode(['error' => 'Authorization token required']);
@@ -19,12 +19,11 @@ class Auth {
 
         try {
             $payload = self::validateJWT($token);
-            
-            // Get user data
+
             $user = new User($db);
             if (!$user->findById($payload['user_id'])) {
                 http_response_code(401);
-                echo json_encode(['error' => 'User not found']);
+                echo json_encode(['error' => 'Unauthorized']);
                 exit();
             }
 
@@ -35,10 +34,10 @@ class Auth {
             }
 
             return $user->toArray();
-            
+
         } catch (Exception $e) {
             http_response_code(401);
-            echo json_encode(['error' => 'Invalid or expired token']);
+            echo json_encode(['error' => 'Unauthorized']);
             exit();
         }
     }
@@ -51,16 +50,20 @@ class Auth {
 
         list($base64Header, $base64Payload, $base64Signature) = $parts;
 
+        $header = json_decode(base64_decode(strtr($base64Header, '-_', '+/')), true);
+        if (!isset($header['alg']) || $header['alg'] !== 'HS256') {
+            throw new Exception('Invalid algorithm');
+        }
+
         $signature = hash_hmac('sha256', $base64Header . "." . $base64Payload, self::getJWTSecret(), true);
         $expectedSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
-        if ($base64Signature !== $expectedSignature) {
+        if (!hash_equals($expectedSignature, $base64Signature)) {
             throw new Exception('Invalid signature');
         }
 
-        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $base64Payload)), true);
-
-        if ($payload['exp'] < time()) {
+        $payload = json_decode(base64_decode(strtr($base64Payload, '-_', '+/')), true);
+        if (!isset($payload['exp']) || $payload['exp'] < time()) {
             throw new Exception('Token expired');
         }
 
@@ -68,6 +71,6 @@ class Auth {
     }
 
     private static function getJWTSecret() {
-        return $_ENV['JWT_SECRET'] ?? 'your-super-secret-jwt-key-change-this';
+        return getenv('JWT_SECRET') ?: 'your-super-secret-jwt-key-change-this';
     }
 }
