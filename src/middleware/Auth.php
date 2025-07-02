@@ -80,7 +80,7 @@ class Auth {
         return getenv('JWT_SECRET') ?: 'your-super-secret-jwt-key-change-this';
     }
 
-    private static function addToBlacklist($db, $token, $exp) {
+    public static function addToBlacklist($db, $token, $exp) {
         $query = "INSERT INTO jwt_blacklist (token, expires_at) VALUES (:token, FROM_UNIXTIME(:exp))";
         $stmt = $db->prepare($query);
         $stmt->bindParam(':token', $token);
