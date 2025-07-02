@@ -47,10 +47,24 @@ class UserController {
             return;
         }
 
-        if (!empty($data['phone'])) {
+        if (isset($data['phone']) && !empty($data['phone'])) {
+            // Validar formato (ej: solo dígitos, con o sin +, 7 a 15 caracteres)
             if (!preg_match('/^\+?[0-9]{7,15}$/', $data['phone'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid phone number format']);
+                return;
+            }
+
+            if (strlen($data['phone']) < 7 || strlen($data['phone']) > 15) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Phone number must be between 7 and 15 digits']);
+                return;
+            }
+        
+            // Validar si el número ya existe en otro usuario
+            if ($this->user->phoneExists($data['phone']) && $this->user->phone !== $data['phone']) {
+                http_response_code(409);
+                echo json_encode(['error' => 'Phone number already exists']);
                 return;
             }
         }
@@ -213,15 +227,27 @@ class UserController {
         if (isset($data['first_name'])) $this->user->first_name = $data['first_name'];
         if (isset($data['last_name'])) $this->user->last_name = $data['last_name'];
 
-        if (isset($data['phone'])) {
-            if (!empty($data['phone']) && !preg_match('/^\+?[0-9]{7,15}$/', $data['phone'])) {
+        if (isset($data['phone']) && !empty($data['phone'])) {
+            // Validar formato (ej: solo dígitos, con o sin +, 7 a 15 caracteres)
+            if (!preg_match('/^\+?[0-9]{7,15}$/', $data['phone'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid phone number format']);
                 return;
             }
-            $this->user->phone = $data['phone'];
-        }
 
+            if (strlen($data['phone']) < 7 || strlen($data['phone']) > 15) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Phone number must be between 7 and 15 digits']);
+                return;
+            }
+        
+            // Validar si el número ya existe en otro usuario
+            if ($this->user->phoneExists($data['phone']) && $this->user->phone !== $data['phone']) {
+                http_response_code(409);
+                echo json_encode(['error' => 'Phone number already exists']);
+                return;
+            }
+        }
         
         // Only admin can change these fields
         if ($currentUser['username'] === 'admin') {
