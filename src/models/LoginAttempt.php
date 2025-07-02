@@ -11,6 +11,11 @@ class LoginAttempt {
         $this->ip = $ip;
         $this->lockoutMinutes = $lockoutMinutes;
 
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            throw new InvalidArgumentException("IP inválida: $ip");
+        }
+
+
         if (rand(1, 100) === 1) {
             $this->cleanOldAttempts();
         }
@@ -20,7 +25,7 @@ class LoginAttempt {
         $query = "SELECT COUNT(*) as attempts 
                   FROM {$this->table} 
                   WHERE ip_address = :ip 
-                  AND attempt_time > DATE_SUB(NOW(), INTERVAL :minutes MINUTE)";
+                  AND attempted_at > DATE_SUB(NOW(), INTERVAL :minutes MINUTE)";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':ip', $this->ip);
         $stmt->bindParam(':minutes', $this->lockoutMinutes, PDO::PARAM_INT);
@@ -31,10 +36,10 @@ class LoginAttempt {
     }
 
     public function getRemainingWaitTime() {
-        $query = "SELECT MIN(attempt_time) as first_attempt 
+        $query = "SELECT MIN(attempted_at) as first_attempt 
                   FROM {$this->table} 
                   WHERE ip_address = :ip 
-                  AND attempt_time > DATE_SUB(NOW(), INTERVAL :minutes MINUTE)";
+                  AND attempted_at > DATE_SUB(NOW(), INTERVAL :minutes MINUTE)";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':ip', $this->ip);
         $stmt->bindParam(':minutes', $this->lockoutMinutes, PDO::PARAM_INT);
