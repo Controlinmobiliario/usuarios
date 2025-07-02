@@ -18,6 +18,12 @@ class UserController {
             return;
         }
 
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid email format']);
+            return;
+        }
+
         // Check if email already exists
         if ($this->user->emailExists($data['email'])) {
             http_response_code(409);
@@ -29,6 +35,12 @@ class UserController {
         if ($this->user->usernameExists($data['username'])) {
             http_response_code(409);
             echo json_encode(['error' => 'Username already exists']);
+            return;
+        }
+
+        if (strlen($data['password']) < 6) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Password must be at least 6 characters']);
             return;
         }
 
@@ -60,6 +72,12 @@ class UserController {
         if (!isset($data['email']) || !isset($data['password'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Email and password required']);
+            return;
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid email format']);
             return;
         }
 
@@ -153,6 +171,13 @@ class UserController {
         
         if (isset($data['email'])) {
             // Check if new email already exists (and it's not the current user's email)
+
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid email format']);
+                return;
+            }
+            
             if ($data['email'] !== $this->user->email && $this->user->emailExists($data['email'])) {
                 http_response_code(409);
                 echo json_encode(['error' => 'Email already exists']);
@@ -285,6 +310,6 @@ class UserController {
     }
 
     private function getJWTSecret() {
-        return $_ENV['JWT_SECRET'] ?? 'your-super-secret-jwt-key-change-this';
+        return getenv('JWT_SECRET') ?: 'your-super-secret-jwt-key-change-this';
     }
 }
