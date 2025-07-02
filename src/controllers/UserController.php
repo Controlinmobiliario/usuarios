@@ -230,12 +230,36 @@ class UserController {
             echo json_encode(['error' => 'Failed to delete user']);
         }
     }
-
+    
     public function logout() {
-        // In a real implementation, you would invalidate the token
-        // For JWT, you might maintain a blacklist of tokens
-        http_response_code(200);
-        echo json_encode(['message' => 'Logged out successfully']);
+        $headers = getallheaders();
+        $token = null;
+    
+        if (isset($headers['Authorization'])) {
+            $token = str_replace('Bearer ', '', $headers['Authorization']);
+        }
+    
+        if (!$token) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Token required']);
+            return;
+        }
+    
+        try {
+            $payload = $this->validateJWT($token);
+    
+            // Insert token into blacklist
+            if (Auth::addToBlacklist($this->db, $token, $payload['exp'])) {
+                http_response_code(200);
+                echo json_encode(['message' => 'Logged out successfully']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to blacklist token']);
+            }
+        } catch (Exception $e) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Invalid token']);
+        }
     }
 
     public function refreshToken() {
