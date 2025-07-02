@@ -83,8 +83,17 @@ class UserController {
             return;
         }
 
-        if ($this->user->findByEmail($data['email'])) {
-            if ($this->user->verifyPassword($data['password'])) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $loginAttempt = new LoginAttempt($this->db, $ip);
+    
+        if ($loginAttempt->isBlocked()) {
+            $waitTime = $loginAttempt->getRemainingWaitTime();
+            http_response_code(429); // Too Many Requests
+            echo json_encode(['error' => "Too many login attempts. Try again in {$waitTime} minute(s)."]);
+            return;
+        }
+
+        if ($this->user->findByEmail($data['email']) && $this->user->verifyPassword($data['password'])) {
                 if (!$this->user->is_active) {
                     http_response_code(401);
                     echo json_encode(['error' => 'Account is deactivated']);
@@ -100,11 +109,8 @@ class UserController {
                     'token' => $token,
                     'user' => $this->user->toArray()
                 ]);
-            } else {
-                http_response_code(401);
-                echo json_encode(['error' => 'Invalid credentials']);
-            }
         } else {
+            $loginAttempt->registerFailedAttempt();
             http_response_code(401);
             echo json_encode(['error' => 'Invalid credentials']);
         }
