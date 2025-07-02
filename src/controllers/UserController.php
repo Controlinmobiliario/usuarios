@@ -1,5 +1,7 @@
 <?php
 
+require_once 'middleware/TokenBlacklist.php';
+
 class UserController {
     private $db;
     private $user;
@@ -230,7 +232,7 @@ class UserController {
             echo json_encode(['error' => 'Failed to delete user']);
         }
     }
-    
+
     public function logout() {
         $headers = getallheaders();
         $token = null;
@@ -248,8 +250,8 @@ class UserController {
         try {
             $payload = $this->validateJWT($token);
     
-            // Insert token into blacklist
-            if (Auth::addToBlacklist($this->db, $token, $payload['exp'])) {
+            $blacklist = new TokenBlacklist($this->db);
+            if ($blacklist->add($token, $payload['exp'])) {
                 http_response_code(200);
                 echo json_encode(['message' => 'Logged out successfully']);
             } else {
