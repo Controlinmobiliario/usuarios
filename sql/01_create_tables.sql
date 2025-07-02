@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS user_service;
 USE user_service;
 
+-- Tabla de usuarios
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     uuid VARCHAR(36) UNIQUE NOT NULL,
@@ -20,6 +21,7 @@ CREATE TABLE users (
     UNIQUE INDEX idx_uuid (uuid)
 );
 
+-- Tabla de sesiones de usuario
 CREATE TABLE user_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -33,6 +35,7 @@ CREATE TABLE user_sessions (
     INDEX idx_user_id (user_id)
 );
 
+-- Tabla de restablecimiento de contraseñas
 CREATE TABLE password_resets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -41,9 +44,11 @@ CREATE TABLE password_resets (
     used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE INDEX idx_token (token)
+    UNIQUE INDEX idx_token (token),
+    UNIQUE INDEX idx_user_id_token_unused (user_id, used)
 );
 
+-- Tabla para tokens JWT en lista negra
 CREATE TABLE jwt_blacklist (
     id INT AUTO_INCREMENT PRIMARY KEY,
     token VARCHAR(512) NOT NULL,
@@ -53,14 +58,24 @@ CREATE TABLE jwt_blacklist (
     INDEX idx_expires_at (expires_at)
 );
 
+-- Evento automático para limpiar tokens expirados de jwt_blacklist
+DELIMITER //
+CREATE EVENT IF NOT EXISTS cleanup_blacklist
+ON SCHEDULE EVERY 1 HOUR
+DO
+BEGIN
+    DELETE FROM jwt_blacklist WHERE expires_at < NOW();
+END;
+//
+DELIMITER ;
+
+-- Tabla de intentos de login
 CREATE TABLE login_attempts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ip_address VARCHAR(45) NOT NULL,
-    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_ip_time (ip_address, attempt_time)
+    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ip_time (ip_address, attempted_at)
 );
-
-
 
 -- Insertar usuario admin por defecto
 INSERT INTO users (uuid, username, email, password_hash, first_name, last_name, is_active, is_verified) 
