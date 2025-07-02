@@ -1,6 +1,7 @@
 <?php
 
 require_once 'middleware/TokenBlacklist.php';
+require_once 'models/LoginAttempt.php';
 
 class UserController {
     private $db;
