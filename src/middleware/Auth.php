@@ -20,6 +20,12 @@ class Auth {
         try {
             $payload = self::validateJWT($token);
 
+            if (self::isBlacklisted($db, $token)) {
+                http_response_code(401);
+                echo json_encode(['error' => 'Token is blacklisted']);
+                exit();
+            }
+
             $user = new User($db);
             if (!$user->findById($payload['user_id'])) {
                 http_response_code(401);
@@ -81,5 +87,14 @@ class Auth {
         $stmt->bindParam(':exp', $exp);
         return $stmt->execute();
     }
+
+    private static function isBlacklisted($db, $token) {
+        $query = "SELECT id FROM jwt_blacklist WHERE token = :token AND expires_at > NOW() LIMIT 1";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
 
 }
