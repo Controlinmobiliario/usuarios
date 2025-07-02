@@ -44,6 +44,16 @@ CREATE TABLE password_resets (
     INDEX idx_token (token)
 );
 
+CREATE TABLE jwt_blacklist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(512) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_expires_at (expires_at)
+);
+
+
 -- Insertar usuario admin por defecto
 INSERT INTO users (uuid, username, email, password_hash, first_name, last_name, is_active, is_verified) 
 VALUES (
