@@ -53,6 +53,14 @@ CREATE TABLE jwt_blacklist (
     INDEX idx_expires_at (expires_at)
 );
 
+CREATE TABLE login_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL,
+    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ip_time (ip_address, attempt_time)
+);
+
+
 
 -- Insertar usuario admin por defecto
 INSERT INTO users (uuid, username, email, password_hash, first_name, last_name, is_active, is_verified) 
